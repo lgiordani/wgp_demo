@@ -3,14 +3,14 @@ import pytest
 from wgp_demo.use_cases import request_object as ro
 
 
-def test_build_site_list_request_object_without_parameters():
+def test_build_artist_list_request_object_without_parameters():
     req = ro.ArtistListRequestObject()
 
     assert req.filters is None
     assert bool(req) is True
 
 
-def test_build_site_list_request_object_with_empty_filters():
+def test_build_artist_list_request_object_with_empty_filters():
     req = ro.ArtistListRequestObject(filters={})
 
     assert req.filters == {}
@@ -31,22 +31,22 @@ def test_build_file_list_request_object_from_dict_with_filters():
     assert bool(req) is True
 
 
-def test_build_site_list_request_object_with_empty_rankings():
-    req = ro.ArtistListRequestObject(rankings={})
+def test_build_artist_list_request_object_with_empty_weights():
+    req = ro.ArtistListRequestObject(weights={})
 
-    assert req.rankings == {}
+    assert req.weights == {}
     assert bool(req) is True
 
 
-def test_build_file_list_request_object_from_dict_with_empty_rankings():
-    req = ro.ArtistListRequestObject.from_dict({'rankings': {}})
+def test_build_file_list_request_object_from_dict_with_empty_weights():
+    req = ro.ArtistListRequestObject.from_dict({'weights': {}})
 
-    assert req.rankings == {}
+    assert req.weights == {}
     assert bool(req) is True
 
 
-def test_build_file_list_request_object_from_dict_with_rankings():
-    req = ro.ArtistListRequestObject.from_dict({'rankings': {'a': 2, 'b': 3}})
+def test_build_file_list_request_object_from_dict_with_weights():
+    req = ro.ArtistListRequestObject.from_dict({'weights': {'a': 2, 'b': 3}})
 
-    assert req.rankings == {'a': 2, 'b': 3}
+    assert req.weights == {'a': 2, 'b': 3}
     assert bool(req) is True

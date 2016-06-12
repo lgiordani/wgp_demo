@@ -17,14 +17,14 @@ blueprint = Blueprint('artist', __name__)
 def artists():
     qrystr_params = {
         'filters': {},
-        'rankings': {}
+        'weights': {}
     }
 
     for arg, values in request.args.items():
         if arg.startswith('filter_'):
             qrystr_params['filters'][arg.replace('filter_', '')] = values
-        elif arg.startswith('ranking_'):
-            qrystr_params['rankings'][arg.replace('ranking_', '')] = values
+        elif arg.startswith('weight_'):
+            qrystr_params['weights'][arg.replace('weight_', '')] = values
 
     request_object = ro.ArtistListRequestObject.from_dict(qrystr_params)
 

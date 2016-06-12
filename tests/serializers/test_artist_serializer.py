@@ -4,7 +4,7 @@ from wgp_demo.serializers import artist_serializer as asr
 from wgp_demo.domain import models as domod
 
 
-def test_serialize_domain_artist_without_rankings():
+def test_serialize_domain_artist_without_ranks():
     artist = domod.Artist('f853578c-fc0f-4e65-81b8-566c5dffa35a', gender='F', age=39, longitude='-0.09998975',
                           latitude='51.75436293', rate=14.21)
 
@@ -26,7 +26,7 @@ def test_serialize_domain_artist_without_rankings():
 
     assert json.loads(json.dumps(artist, cls=asr.ArtistEncoder)) == json.loads(expected_json)
 
-def test_serialize_domain_artist_with_rankings():
+def test_serialize_domain_artist_with_ranks():
     artist = domod.Artist('f853578c-fc0f-4e65-81b8-566c5dffa35a', gender='F', age=39, longitude='-0.09998975',
                           latitude='51.75436293', rate=14.21)
 

@@ -17,7 +17,7 @@ Each artist is described by an UUID, gender, age, latitude, longitude and rate. 
 * a rate threshold
 * gender
 
-The search criteria are all optional, but can be combined so that a request can have from zero to four criteria. Each criteria should also be able to have a rank/weight.
+The search criteria are all optional, but can be combined so that a request can have from zero to four criteria. Each criteria should also be able to have a weight.
 
 # Usage
 
@@ -33,27 +33,27 @@ If you want to develop or to test just install the relative requirements you can
 
 The service accepts HTTP GET requests on the REST endpoint http://127.0.0.1:5000/artists with the following query parameters:
 
-* `filter_age_min`, `filter_age_max`: integers
-* `filter_location`: in the format `<longitude>,<latitude>,<radius>`, where the three values are float
+* `filter_age`: formatted as `<min>,<max>`, where the two values are integers
+* `filter_location`: formatted as `<longitude>,<latitude>,<radius>`, where the three values are float
 * `filter_rate_max`: float
-* `ranking_age`: a float representing the weight given to the distance of an artist from the average age of the resulting dataset (the higher the distance the lower the ranking).
-* `ranking_distance`: a float representing the weight given to the distance from the given location (the higher the distance the lower the ranking).
-* `ranking_rate`: a float representing the weight given to the distance from the given rate threshold (the higher the distance the higher the ranking).
+* `weight_age`: a float representing the weight given to the distance of an artist from the average age of the resulting dataset (the higher the distance the lower the rank).
+* `weight_distance`: a float representing the weight given to the distance from the given location (the higher the distance the lower the rank).
+* `weight_rate`: a float representing the weight given to the distance from the given rate threshold (the higher the distance the higher the rank).
 
 * Find all artists within a radius of 10 miles from London: http://127.0.0.1:5000/artists?filter_location=51.5126064,-0.1802461,10
-* Find all artists between 34 years old and 45 years old: http://127.0.0.1:5000/artists?filter_age_min=34&filter_age_max=45
-* Combine the previous two queries and rank artists considering the distance only: http://127.0.0.1:5000/artists?filter_location=51.5126064,-0.1802461,10&filter_age_min=34&filter_age_max=45&ranking_distance=1
-* Make the same query with a ranking based 80% on the distance and 20% on the age (distance from the average age): http://127.0.0.1:5000/artists?filter_location=51.5126064,-0.1802461,10&filter_age_min=34&filter_age_max=45&ranking_distance=0.8&ranking_age=0.2
+* Find all artists between 34 years old and 45 years old: http://127.0.0.1:5000/artists?filter_age=34,45
+* Combine the previous two queries and rank artists considering the distance only: http://127.0.0.1:5000/artists?filter_location=51.5126064,-0.1802461,10&filter_age=34,45&weight_distance=1
+* Make the same query with a weight based 80% on the distance and 20% on the age (distance from the average age): http://127.0.0.1:5000/artists?filter_location=51.5126064,-0.1802461,10&filter_age=34,45&weight_distance=0.8&weight_age=0.2
 
 The ranking system is based on three values computed according to the filters:
 
-* `age_rank` is the absolute value of the difference between the age of the single artist and the average age given as search parameter. Example: `&filter_age_min=34&filter_age_max=36` give 35 as average age and an artist of age 36 has an `age_rank` of 1.
+* `age_rank` is the absolute value of the difference between the age of the single artist and the average age given as search parameter. Example: `&filter_age=34,36` give 35 as average age and an artist of age 36 has an `age_rank` of 1.
 * `distance_rank` is the inverse of the distance of the single artist from the given location. Example: an artist that lives 100 miles from the given location has a `distance_rank` of 0.01. Check the `distance` attribute of the domain model for the actual distance in miles.
 * `rate_rank` is the difference between the artist rate and the given maximum rate. Example: given a `filter_rate_max=50` an artist with rate 20 has a `rate_rank` of 30.
 
 All three values are normalized between the minimum and the maximum value of the resulting dataset, so all their values are between 0 and 1, the latter being the best one.
  
-Since more than one filter can be given, the user may also specify a weight for each parameter (`ranking_age`, `ranking_distance`, `ranking_rate`), which is 0 if not given. The three normalized rankings are weighted and summed to create the `global_rank`.
+Since more than one filter can be given, the user may also specify a weight for each parameter (`weight_age`, `weight_distance`, `weight_rate`), which is 0 if not given. The three normalized weights are weighted and summed to create the `global_rank`.
     
 
 # Implementation notes
@@ -71,6 +71,6 @@ The main purpose of this project is to show a software _architecture_. The main 
 Being this a demonstration project some choices have been made that should be reconsidered in a real-world project. Here you will find some considerations about those choices and the possible upgrades the code should get if used in a production environment.
  
 * Lack of database: the only repository implemented in this project is ArtistJsonRepository, which is a file-based data storage. Obviously a production system shall implement an optimized data storage such as PostgreSQL, MongoDB, BigTable or other solutions.
-* Ranking system: the ranking system has been implemented in the repository. It is used to order results in a non trivial way. This is something that may be discussed a lot, I think, in a real-world project. Strictly speaking the ranking system of a set of domain models should belong to the business rules, so should be implemented in the use case. Some parts of it, however, may be computationally intensive, so one could want to move the whole system to the repository, to take advantage of the particular external system and its optimizations. For example the repository could extract data from a cloud service that implements the ranking system in a very efficient way that cannot be offered by a local single process written in Python such as the use case is.
+* Ranking system: the ranking system has been implemented in the repository. It is used to order results in a non trivial way. This is something that may be discussed a lot, I think, in a real-world project. Strictly speaking the ranking system of a set of domain models should belong to the business rules, so it should be implemented in the use case. Some parts of it, however, may be computationally intensive, so one could want to move the whole system to the repository, to take advantage of the particular external system and its optimizations. For example the repository could extract data from a cloud service that implements the ranking system in a very efficient way that cannot be offered by a local single process written in Python such as the use case is.
 * Monolitc structure: to easily show the whole architecture all components have been packed into a single project. In a real world system teams or single developers shall be able to work on different parts of the system and release them without the need to put the whole codebase on a feature branch. The main layers that should be divided into isolated projects should be: the core domain code (domain/ and use_cases/), the repository interfaces (repositories/), that could also be split in different projects if more that one repository shall be actively maintained, the presentation layers (rest/), also possibly split in different projects if complex enough.
 

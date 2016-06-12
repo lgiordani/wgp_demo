@@ -220,16 +220,16 @@ def test_list_with_multiple_filters(temp_json_file):
     )
 
     assert len(artists) == 1
-    assert all([artist.age_rank != 0 for artist in artists])
+    assert all([artist.age_rank == 1 for artist in artists])
     assert all([artist.distance is not None for artist in artists])
-    assert all([artist.distance_rank != 0 for artist in artists])
-    assert all([artist.rate_rank == 0 for artist in artists])
+    assert all([artist.distance_rank == 1 for artist in artists])
+    assert all([artist.rate_rank == 1 for artist in artists])
 
 
-def test_list_accepts_ranking(temp_json_file):
+def test_list_accepts_weights(temp_json_file):
     repo = ajr.ArtistJsonRepository(temp_json_file)
 
-    artists = repo.list(filters={}, rankings={})
+    artists = repo.list(filters={}, weights={})
 
     assert len(artists) == len(data_dict['artists'])
     assert isinstance(artists[0], domod.DomainModel)
@@ -239,7 +239,7 @@ def test_list_accepts_ranking(temp_json_file):
 def test_list_rank_by_age(temp_json_file):
     repo = ajr.ArtistJsonRepository(temp_json_file)
 
-    artists = repo.list(filters={}, rankings={'age': '1'})
+    artists = repo.list(filters={}, weights={'age': '1'})
 
     expected_result = [
         'f853578c-fc0f-4e65-81b8-566c5dffa35a',
@@ -260,7 +260,7 @@ def test_list_rank_by_distance(temp_json_file):
             london_position['longitude'],
             23.1
         ),
-    }, rankings={'distance': '1'})
+    }, weights={'distance': '1'})
 
     expected_result = [
         'f853578c-fc0f-4e65-81b8-566c5dffa35a',
@@ -274,7 +274,7 @@ def test_list_rank_by_distance(temp_json_file):
 def test_list_rank_by_rate(temp_json_file):
     repo = ajr.ArtistJsonRepository(temp_json_file)
 
-    artists = repo.list(filters={'rate_max': '31.1'}, rankings={'rate': '1'})
+    artists = repo.list(filters={'rate_max': '31.1'}, weights={'rate': '1'})
     expected_result = [
         'f853578c-fc0f-4e65-81b8-566c5dffa35a',
         '913694c6-435a-4366-ba0d-da5334a611b2',
@@ -293,7 +293,7 @@ def test_list_rank_by_half_distance_half_age(temp_json_file):
             london_position['longitude'],
             23
         ),
-    }, rankings={'age': '0.5', 'distance': '0.5'})
+    }, weights={'age': '0.5', 'distance': '0.5'})
 
     expected_result = [
         'f853578c-fc0f-4e65-81b8-566c5dffa35a',
@@ -304,7 +304,7 @@ def test_list_rank_by_half_distance_half_age(temp_json_file):
     assert [artist.uuid for artist in artists] == expected_result
 
 
-def test_list_rank_by_unbalanced_ranking(temp_json_file):
+def test_list_ranks_shall_be_normalized(temp_json_file):
     repo = ajr.ArtistJsonRepository(temp_json_file)
 
     artists = repo.list(filters={
@@ -314,12 +314,27 @@ def test_list_rank_by_unbalanced_ranking(temp_json_file):
             london_position['longitude'],
             23
         ),
-    }, rankings={'age': '1', 'distance': '0.2'})
+    }, weights={'age': '1', 'distance': '100'})
 
     expected_result = [
-        '913694c6-435a-4366-ba0d-da5334a611b2',
         'f853578c-fc0f-4e65-81b8-566c5dffa35a',
+        '913694c6-435a-4366-ba0d-da5334a611b2',
         'fe2c3195-aeff-487a-a08f-e0bdc0ec6e9a',
     ]
 
     assert [artist.uuid for artist in artists] == expected_result
+
+def test_list_global_ranks_are_normalized(temp_json_file):
+    repo = ajr.ArtistJsonRepository(temp_json_file)
+
+    artists = repo.list(filters={
+        'age': '39,66',
+        'location': '{},{},{}'.format(
+            london_position['latitude'],
+            london_position['longitude'],
+            23
+        ),
+    }, weights={'age': '1', 'distance': '100'})
+
+
+    assert all([1 >= artist.global_rank >= 0 for artist in artists])
