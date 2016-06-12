@@ -37,13 +37,23 @@ The service accepts HTTP GET requests on the REST endpoint http://127.0.0.1:5000
 * `filter_location`: in the format `<longitude>,<latitude>,<radius>`, where the three values are float
 * `filter_rate_max`: float
 * `ranking_age`: a float representing the weight given to the distance of an artist from the average age of the resulting dataset (the higher the distance the lower the ranking).
-* `ranking_location`: a float representing the weight given to the distance from the given location (the higher the distance the lower the ranking).
+* `ranking_distance`: a float representing the weight given to the distance from the given location (the higher the distance the lower the ranking).
 * `ranking_rate`: a float representing the weight given to the distance from the given rate threshold (the higher the distance the higher the ranking).
 
 * Find all artists within a radius of 10 miles from London: http://127.0.0.1:5000/artists?filter_location=51.5126064,-0.1802461,10
 * Find all artists between 34 years old and 45 years old: http://127.0.0.1:5000/artists?filter_age_min=34&filter_age_max=45
-* Combine the previous two queries and rank artists considering the distance only: http://127.0.0.1:5000/artists?filter_location=51.5126064,-0.1802461,10&filter_age_min=34&filter_age_max=45&ranking_location=1
-* Make the same query with a ranking based 80% on the distance and 20% on the age (distance from the average age): http://127.0.0.1:5000/artists?filter_location=51.5126064,-0.1802461,10&filter_age_min=34&filter_age_max=45&ranking_location=0.8&ranking_age=0.2
+* Combine the previous two queries and rank artists considering the distance only: http://127.0.0.1:5000/artists?filter_location=51.5126064,-0.1802461,10&filter_age_min=34&filter_age_max=45&ranking_distance=1
+* Make the same query with a ranking based 80% on the distance and 20% on the age (distance from the average age): http://127.0.0.1:5000/artists?filter_location=51.5126064,-0.1802461,10&filter_age_min=34&filter_age_max=45&ranking_distance=0.8&ranking_age=0.2
+
+The ranking system is based on three values computed according to the filters:
+
+* `age_rank` is the absolute value of the difference between the age of the single artist and the average age given as search parameter. Example: `&filter_age_min=34&filter_age_max=36` give 35 as average age and an artist of age 36 has an `age_rank` of 1.
+* `distance_rank` is the inverse of the distance of the single artist from the given location. Example: an artist that lives 100 miles from the given location has a `distance_rank` of 0.01. Check the `distance` attribute of the domain model for the actual distance in miles.
+* `rate_rank` is the difference between the artist rate and the given maximum rate. Example: given a `filter_rate_max=50` an artist with rate 20 has a `rate_rank` of 30.
+
+All three values are normalized between the minimum and the maximum value of the resulting dataset, so all their values are between 0 and 1, the latter being the best one.
+ 
+Since more than one filter can be given, the user may also specify a weight for each parameter (`ranking_age`, `ranking_distance`, `ranking_rate`), which is 0 if not given. The three normalized rankings are weighted and summed to create the `global_rank`.
     
 
 # Implementation notes

@@ -16,9 +16,10 @@ def test_serialize_domain_artist_without_rankings():
             "longitude": -0.09998975,
             "latitude": 51.75436293,
             "rate": 14.21,
-            "distance_rank": null,
-            "age_rank": null,
-            "rate_rank": null,
+            "distance": null,
+            "distance_rank": 0,
+            "age_rank": 0,
+            "rate_rank": 0,
             "global_rank": null
         }
     """
@@ -29,6 +30,7 @@ def test_serialize_domain_artist_with_rankings():
     artist = domod.Artist('f853578c-fc0f-4e65-81b8-566c5dffa35a', gender='F', age=39, longitude='-0.09998975',
                           latitude='51.75436293', rate=14.21)
 
+    artist.distance = 1
     artist.age_rank = 2
     artist.distance_rank = 3
     artist.rate_rank = 4
@@ -42,6 +44,7 @@ def test_serialize_domain_artist_with_rankings():
             "longitude": -0.09998975,
             "latitude": 51.75436293,
             "rate": 14.21,
+            "distance": 1,
             "distance_rank": 3,
             "age_rank": 2,
             "rate_rank": 4,
