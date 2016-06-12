@@ -5,10 +5,6 @@ from geopy.distance import great_circle
 from wgp_demo.domain import models as domod
 
 
-class MissingParameterError(Exception):
-    "And exception used to signal a missing parameter in the filter dictionary"
-
-
 class ArtistJsonRepository(object):
     def __init__(self, filepath):
         with open(filepath) as f:
@@ -59,9 +55,11 @@ class ArtistJsonRepository(object):
         return _artist_list
 
     def _filter_by_distance(self, _filters, artist_list):
-        if 'latitude' in _filters:
-            latlon = (float(_filters['latitude']), float(_filters['longitude']))
-            radius = float(_filters['radius'])
+        if 'location' in _filters:
+            latitude, longitude, radius = _filters['location'].split(',')
+
+            latlon = (float(latitude), float(longitude))
+            radius = float(radius)
 
             _artist_list = []
             for artist in artist_list:
@@ -129,11 +127,6 @@ class ArtistJsonRepository(object):
             _rankings = rankings
         else:
             _rankings = {}
-
-        geokeys = {'latitude', 'longitude', 'radius'}
-        filterkeys = set(_filters.keys())
-        if len(geokeys & filterkeys) != 0 and not geokeys <= filterkeys:
-            raise MissingParameterError
 
         artist_list = [domod.Artist.from_dict(artist) for artist in self.data['artists']]
         artist_list = self._filter_by_age(_filters, artist_list)
