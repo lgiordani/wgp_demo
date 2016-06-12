@@ -57,7 +57,7 @@ def test_artist_list_without_parameters(domain_artists):
     response_object = artist_list_use_case.execute(request_object)
 
     assert bool(response_object) is True
-    artist_repo.list.assert_called_with(filters=None, rankings=None)
+    artist_repo.list.assert_called_with(filters=None, weights=None)
 
     assert response_object.value == domain_artists
 
@@ -73,47 +73,47 @@ def test_artist_list_with_filters(domain_artists):
     response_object = artist_list_use_case.execute(request_object)
 
     assert bool(response_object) is True
-    artist_repo.list.assert_called_with(filters=qry_filters, rankings=None)
+    artist_repo.list.assert_called_with(filters=qry_filters, weights=None)
     assert response_object.value == domain_artists
 
 
-def test_artist_list_with_rankings(domain_artists):
+def test_artist_list_with_weights(domain_artists):
     artist_repo = mock.Mock()
     artist_repo.list.return_value = domain_artists
 
     artist_list_use_case = suc.ArtistListUseCase(artist_repo)
-    qry_rankings = {'a': 5}
-    request_object = ro.ArtistListRequestObject.from_dict({'rankings': qry_rankings})
+    qry_weights = {'a': 5}
+    request_object = ro.ArtistListRequestObject.from_dict({'weights': qry_weights})
 
     response_object = artist_list_use_case.execute(request_object)
 
     assert bool(response_object) is True
-    artist_repo.list.assert_called_with(filters=None, rankings=qry_rankings)
+    artist_repo.list.assert_called_with(filters=None, weights=qry_weights)
     assert response_object.value == domain_artists
 
 
-def test_artist_list_with_filters_and_rankings(domain_artists):
+def test_artist_list_with_filters_and_weights(domain_artists):
     artist_repo = mock.Mock()
     artist_repo.list.return_value = domain_artists
 
     artist_list_use_case = suc.ArtistListUseCase(artist_repo)
     qry_filters = {'f': 6}
-    qry_rankings = {'r': 5}
+    qry_weights = {'r': 5}
     request_object = ro.ArtistListRequestObject.from_dict(
         {
             'filters': qry_filters,
-            'rankings': qry_rankings
+            'weights': qry_weights
         }
     )
 
     response_object = artist_list_use_case.execute(request_object)
 
     assert bool(response_object) is True
-    artist_repo.list.assert_called_with(filters=qry_filters, rankings=qry_rankings)
+    artist_repo.list.assert_called_with(filters=qry_filters, weights=qry_weights)
     assert response_object.value == domain_artists
 
 
-def test_site_list_handles_generic_error():
+def test_artist_list_handles_generic_error():
     artist_repo = mock.Mock()
     artist_repo.list.side_effect = Exception
 

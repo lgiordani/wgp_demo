@@ -10,9 +10,10 @@ def test_artist_model_init():
     assert artist.longitude == -0.09998975
     assert artist.latitude == 51.75436293
     assert artist.rate == 14.21
-    assert artist.distance_rank == None
-    assert artist.age_rank == None
-    assert artist.rate_rank == None
+    assert artist.distance == None
+    assert artist.distance_rank == 0
+    assert artist.age_rank == 0
+    assert artist.rate_rank == 0
     assert artist.global_rank == None
 
 
@@ -34,7 +35,8 @@ def test_artist_model_from_dict():
     assert artist.longitude == -0.09998975
     assert artist.latitude == 51.75436293
     assert artist.rate == 14.21
-    assert artist.distance_rank == None
-    assert artist.age_rank == None
-    assert artist.rate_rank == None
+    assert artist.distance == None
+    assert artist.distance_rank == 0
+    assert artist.age_rank == 0
+    assert artist.rate_rank == 0
     assert artist.global_rank == None

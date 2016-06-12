@@ -4,7 +4,7 @@ import mock
 import pytest
 from flask import Response
 
-from wgp_demo.pypline import response_object as res
+from wgp_demo.shared import response_object as res
 
 
 @pytest.fixture
@@ -67,7 +67,7 @@ def test_use_case_correctly_initialized(client, not_empty_response_object):
 
 
 def test_artist_list(client, not_empty_response_object):
-    with mock.patch('wgp_demo.pypline.http_response.HttpResponse') as mock_http_response:
+    with mock.patch('wgp_demo.shared.http_response.HttpResponse') as mock_http_response:
         mock_http_response().json.return_value = Response(json.dumps(not_empty_response_object.value),
                                                           mimetype='application/json',
                                                           status=200)
@@ -100,7 +100,7 @@ def test_request_object_initialisation_and_use_without_parameters(client, empty_
             mock_request_object.from_dict.return_value = internal_request_object
             client.get('/artists')
 
-    mock_request_object.from_dict.assert_called_with({'filters': {}, 'rankings': {}})
+    mock_request_object.from_dict.assert_called_with({'filters': {}, 'weights': {}})
     mock_use_case().execute.assert_called_with(internal_request_object)
 
 
@@ -114,35 +114,35 @@ def test_request_object_initialisation_and_use_with_filters(client, empty_respon
             client.get('/artists?filter_param1=value1&filter_param2=value2')
 
     mock_request_object.from_dict.assert_called_with(
-        {'filters': {'param1': 'value1', 'param2': 'value2'}, 'rankings': {}})
+        {'filters': {'param1': 'value1', 'param2': 'value2'}, 'weights': {}})
     mock_use_case().execute.assert_called_with(internal_request_object)
 
 
-def test_request_object_initialisation_and_use_with_rankings(client, empty_response_object):
+def test_request_object_initialisation_and_use_with_weights(client, empty_response_object):
     internal_request_object = mock.Mock()
 
     with mock.patch('wgp_demo.use_cases.artist_use_cases.ArtistListUseCase') as mock_use_case:
         mock_use_case().execute.return_value = empty_response_object
         with mock.patch('wgp_demo.use_cases.request_object.ArtistListRequestObject') as mock_request_object:
             mock_request_object.from_dict.return_value = internal_request_object
-            client.get('/artists?ranking_param1=value1&ranking_param2=value2')
+            client.get('/artists?weight_param1=value1&weight_param2=value2')
 
     mock_request_object.from_dict.assert_called_with(
-        {'rankings': {'param1': 'value1', 'param2': 'value2'}, 'filters': {}})
+        {'weights': {'param1': 'value1', 'param2': 'value2'}, 'filters': {}})
     mock_use_case().execute.assert_called_with(internal_request_object)
 
 
-def test_request_object_initialisation_and_use_with_filters_andrankings(client, empty_response_object):
+def test_request_object_initialisation_and_use_with_filters_andweights(client, empty_response_object):
     internal_request_object = mock.Mock()
 
     with mock.patch('wgp_demo.use_cases.artist_use_cases.ArtistListUseCase') as mock_use_case:
         mock_use_case().execute.return_value = empty_response_object
         with mock.patch('wgp_demo.use_cases.request_object.ArtistListRequestObject') as mock_request_object:
             mock_request_object.from_dict.return_value = internal_request_object
-            client.get('/artists?filter_param1=value1&filter_param2=value2&ranking_param1=value3&ranking_param2=value4')
+            client.get('/artists?filter_param1=value1&filter_param2=value2&weight_param1=value3&weight_param2=value4')
 
     mock_request_object.from_dict.assert_called_with({
         'filters': {'param1': 'value1', 'param2': 'value2'},
-        'rankings': {'param1': 'value3', 'param2': 'value4'}
+        'weights': {'param1': 'value3', 'param2': 'value4'}
     })
     mock_use_case().execute.assert_called_with(internal_request_object)

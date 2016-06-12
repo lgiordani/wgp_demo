@@ -2,6 +2,7 @@ six
 
 Flask
 Flask-Migrate
+flask-cors
 
 gunicorn
 

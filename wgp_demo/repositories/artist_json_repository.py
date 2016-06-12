@@ -5,16 +5,13 @@ from geopy.distance import great_circle
 from wgp_demo.domain import models as domod
 
 
-class MissingParameterError(Exception):
-    "And exception used to signal a missing parameter in the filter dictionary"
-
-
 class ArtistJsonRepository(object):
     def __init__(self, filepath):
         with open(filepath) as f:
             data = f.read()
 
         self.data = json.loads(data)
+        self.ranks = ['age', 'distance', 'rate']
 
     def _compute_distance(self, artist, latlon):
         artist_latlon = (artist.latitude, artist.longitude)
@@ -22,7 +19,7 @@ class ArtistJsonRepository(object):
         return great_circle(artist_latlon, latlon).miles
 
     def _normalize_data(self, data):
-        if None in data:
+        if None in data or len(data) == 0:
             return data
 
         min_data = min(data)
@@ -30,24 +27,33 @@ class ArtistJsonRepository(object):
 
         norm = max_data - min_data
         if norm == 0:
-            return data
+            return [1] * len(data)
 
         return [(d - min_data) / norm for d in data]
 
-    def _normalize_ranking(self, artist_list):
-        norm_age_ranks = self._normalize_data([artist.age_rank for artist in artist_list])
-        norm_distance_ranks = self._normalize_data([artist.distance_rank for artist in artist_list])
-        norm_rate_ranks = self._normalize_data([artist.rate_rank for artist in artist_list])
+    def _normalize_artist_ranks(self, artist_list):
+        normalized_datasets = []
 
-        for artist, age_rank, distance_rank, rate_rank in zip(artist_list, norm_age_ranks, norm_distance_ranks,
-                                                              norm_rate_ranks):
+        for rank in self.ranks:
+            attr = rank + '_rank'
+            normalized_datasets.append(self._normalize_data([getattr(artist, attr) for artist in artist_list]))
+
+        for artist, age_rank, distance_rank, rate_rank in zip(artist_list, *normalized_datasets):
             artist.age_rank = age_rank
             artist.distance_rank = distance_rank
             artist.rate_rank = rate_rank
 
     def _filter_by_age(self, _filters, artist_list):
-        age_min = int(_filters.get('age_min', 0))
-        age_max = int(_filters.get('age_max', 100))
+        if 'age' not in _filters:
+            return artist_list
+
+        try:
+            age_min_str, age_max_str = _filters['age'].split(',')
+        except ValueError:
+            age_min_str = age_max_str = _filters['age']
+
+        age_min = int(age_min_str)
+        age_max = int(age_max_str)
         avg_age = age_min + float(age_max - age_min) / 2
 
         _artist_list = []
@@ -59,9 +65,11 @@ class ArtistJsonRepository(object):
         return _artist_list
 
     def _filter_by_distance(self, _filters, artist_list):
-        if 'latitude' in _filters:
-            latlon = (float(_filters['latitude']), float(_filters['longitude']))
-            radius = float(_filters['radius'])
+        if 'location' in _filters:
+            latitude, longitude, radius = _filters['location'].split(',')
+
+            latlon = (float(latitude), float(longitude))
+            radius = float(radius)
 
             _artist_list = []
             for artist in artist_list:
@@ -70,7 +78,8 @@ class ArtistJsonRepository(object):
                 if distance < radius:
                     if distance == 0:
                         distance += 10e-5
-                    artist.distance_rank = 1/distance
+                    artist.distance_rank = 1 / distance
+                    artist.distance = distance
                     _artist_list.append(artist)
 
             artist_list = _artist_list
@@ -78,11 +87,11 @@ class ArtistJsonRepository(object):
         return artist_list
 
     def _filter_by_rate(self, _filters, artist_list):
-        if 'max_rate' in _filters:
+        if 'rate_max' in _filters:
             _artist_list = []
             for artist in artist_list:
-                if artist.rate <= float(_filters['max_rate']):
-                    artist.rate_rank = abs(float(_filters['max_rate']) - artist.rate)
+                if artist.rate <= float(_filters['rate_max']):
+                    artist.rate_rank = abs(float(_filters['rate_max']) - artist.rate)
                     _artist_list.append(artist)
 
             artist_list = _artist_list
@@ -95,45 +104,41 @@ class ArtistJsonRepository(object):
 
         return artist_list
 
-    def _compute_global_rank(self, artist, ranking_dict):
-        global_rank = 0
+    def _compute_global_rank(self, artist, weights_dict):
+        weighted_ranks = []
 
-        ranks = [('age_rank', 'age'), ('distance_rank', 'distance'), ('rate_rank', 'rate')]
-        nranks = len(ranks)
+        for rank in self.ranks:
+            artist_rank = getattr(artist, rank + "_rank")
+            weighted_ranks.append(artist_rank * weights_dict[rank])
 
-        for attr, rank in ranks:
-            artist_rank = getattr(artist, attr)
-            if artist_rank is None:
-                continue
+        artist.global_rank = sum(weighted_ranks)
 
-            global_rank += artist_rank * float(ranking_dict.get(rank, 0)) / nranks
-
-        artist.global_rank = global_rank
-        return global_rank
-
-    def _order_by_rank(self, ranking_dict, artist_list):
+    def _order_by_rank(self, weights_dict, artist_list):
         for artist in artist_list:
-            self._compute_global_rank(artist, ranking_dict)
+            self._compute_global_rank(artist, weights_dict)
+
+        global_ranks = [artist.global_rank for artist in artist_list]
+        normalized_global_ranks = self._normalize_data(global_ranks)
+
+        for artist, normalized_global_rank in zip(artist_list, normalized_global_ranks):
+            artist.global_rank = normalized_global_rank
 
         sorted_artists_by_global_rank = sorted(artist_list, key=lambda x: x.global_rank, reverse=True)
 
         return sorted_artists_by_global_rank
 
-    def list(self, filters=None, rankings=None):
+    def list(self, filters=None, weights=None):
         if filters is not None:
             _filters = filters
         else:
             _filters = {}
 
-        if rankings is not None:
-            _rankings = rankings
+        if weights is not None:
+            _weights = weights
         else:
-            _rankings = {}
+            _weights = {}
 
-        geokeys = {'latitude', 'longitude', 'radius'}
-        filterkeys = set(_filters.keys())
-        if len(geokeys & filterkeys) != 0 and not geokeys <= filterkeys:
-            raise MissingParameterError
+        self._normalize_weights(_weights)
 
         artist_list = [domod.Artist.from_dict(artist) for artist in self.data['artists']]
         artist_list = self._filter_by_age(_filters, artist_list)
@@ -141,8 +146,21 @@ class ArtistJsonRepository(object):
         artist_list = self._filter_by_rate(_filters, artist_list)
         artist_list = self._filter_by_gender(_filters, artist_list)
 
-        self._normalize_ranking(artist_list)
+        self._normalize_artist_ranks(artist_list)
 
-        artist_list = self._order_by_rank(_rankings, artist_list)
+        artist_list = self._order_by_rank(_weights, artist_list)
 
         return artist_list
+
+    def _normalize_weights(self, _weights):
+        for key, value in _weights.items():
+            _weights[key] = float(value)
+
+        for rank in self.ranks:
+            if rank not in _weights:
+                _weights[rank] = 0
+
+        norm = sum(_weights.values())
+        if norm == 0:
+            for rank in self.ranks:
+                _weights[rank] = 1

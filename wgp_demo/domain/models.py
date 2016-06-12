@@ -1,4 +1,4 @@
-from wgp_demo.pypline import domain as ppld
+from wgp_demo.shared import domain as ppld
 
 
 class DomainModel(ppld.DomainModel):
@@ -13,9 +13,10 @@ class Artist(object):
         self.latitude = float(latitude)
         self.longitude = float(longitude)
         self.rate = rate
-        self.distance_rank = None
-        self.age_rank = None
-        self.rate_rank = None
+        self.distance = None
+        self.distance_rank = 0
+        self.age_rank = 0
+        self.rate_rank = 0
         self.global_rank = None
 
     @classmethod

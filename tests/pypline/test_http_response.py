@@ -2,8 +2,8 @@ import pytest
 import json
 from flask import Response
 
-from wgp_demo.pypline import response_object as res
-from wgp_demo.pypline import http_response as hres
+from wgp_demo.shared import response_object as res
+from wgp_demo.shared import http_response as hres
 
 
 @pytest.fixture

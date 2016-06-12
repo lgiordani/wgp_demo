@@ -11,6 +11,7 @@ class ArtistEncoder(json.JSONEncoder):
                 "latitude": o.latitude,
                 "longitude": o.longitude,
                 "rate": o.rate,
+                "distance": o.distance,
                 "distance_rank": o.distance_rank,
                 "age_rank": o.age_rank,
                 "rate_rank": o.rate_rank,

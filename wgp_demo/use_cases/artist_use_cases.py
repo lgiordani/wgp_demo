@@ -1,5 +1,5 @@
-from wgp_demo.pypline import response_object as ro
-from wgp_demo.pypline import use_case as uc
+from wgp_demo.shared import response_object as ro
+from wgp_demo.shared import use_case as uc
 
 
 class ArtistListUseCase(uc.UseCase):
@@ -9,6 +9,6 @@ class ArtistListUseCase(uc.UseCase):
     def process_request(self, request_object):
         domain_artists = self.artist_repo.list(
             filters=request_object.filters,
-            rankings=request_object.rankings
+            weights=request_object.weights
         )
         return ro.ResponseSuccess(domain_artists)
