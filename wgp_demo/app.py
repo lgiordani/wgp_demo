@@ -2,6 +2,7 @@
 
 import os
 from flask import Flask
+from flask_cors import CORS
 
 from wgp_demo.settings import DevConfig, ProdConfig
 from wgp_demo.rest import artists
@@ -11,6 +12,7 @@ def create_app(config_object=DevConfig):
     """An application factory, as explained here: http://flask.pocoo.org/docs/patterns/appfactories/"""
     app = Flask(__name__)
     app.config.from_object(config_object)
+    CORS(app)
     register_blueprints(app)
     return app
 
