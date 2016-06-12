@@ -1,0 +1,8 @@
+six
+
+Flask
+Flask-Migrate
+
+gunicorn
+
+geopy

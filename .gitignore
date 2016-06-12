@@ -1,0 +1,10 @@
+.cache
+.idea
+.tox
+*.egg-info
+venv*
+.vagrant
+
+.python-version
+*.pyc
+__pycache__

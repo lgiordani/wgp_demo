@@ -1,0 +1,7 @@
+-r test.txt
+
+# Management script
+Flask-Script
+
+# Deployment
+ansible
