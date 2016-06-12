@@ -1,4 +1,4 @@
-from wgp_demo.pypline import request_object as plro
+from wgp_demo.shared import request_object as plro
 
 
 class ArtistListRequestObject(plro.ValidRequestObject):

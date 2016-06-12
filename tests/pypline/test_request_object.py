@@ -1,4 +1,4 @@
-from wgp_demo.pypline import request_object as ro
+from wgp_demo.shared import request_object as ro
 
 
 def test_invalid_request_object_is_false():

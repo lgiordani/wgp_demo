@@ -1,5 +1,5 @@
-from wgp_demo.pypline import response_object as ro
-from wgp_demo.pypline import use_case as uc
+from wgp_demo.shared import response_object as ro
+from wgp_demo.shared import use_case as uc
 
 
 class ArtistListUseCase(uc.UseCase):

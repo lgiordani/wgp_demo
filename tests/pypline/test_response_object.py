@@ -1,7 +1,7 @@
 import pytest
 
-from wgp_demo.pypline import request_object as plreq
-from wgp_demo.pypline import response_object as plres
+from wgp_demo.shared import request_object as plreq
+from wgp_demo.shared import response_object as plres
 
 
 @pytest.fixture

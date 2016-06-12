@@ -2,7 +2,7 @@ import os
 
 from flask import Blueprint, request, current_app
 
-from wgp_demo.pypline import http_response as hres
+from wgp_demo.shared import http_response as hres
 
 from wgp_demo.repositories import artist_json_repository as ajr
 from wgp_demo.serializers import artist_serializer as asr

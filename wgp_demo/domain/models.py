@@ -1,4 +1,4 @@
-from wgp_demo.pypline import domain as ppld
+from wgp_demo.shared import domain as ppld
 
 
 class DomainModel(ppld.DomainModel):

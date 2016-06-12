@@ -4,7 +4,7 @@ import mock
 import pytest
 from flask import Response
 
-from wgp_demo.pypline import response_object as res
+from wgp_demo.shared import response_object as res
 
 
 @pytest.fixture
@@ -67,7 +67,7 @@ def test_use_case_correctly_initialized(client, not_empty_response_object):
 
 
 def test_artist_list(client, not_empty_response_object):
-    with mock.patch('wgp_demo.pypline.http_response.HttpResponse') as mock_http_response:
+    with mock.patch('wgp_demo.shared.http_response.HttpResponse') as mock_http_response:
         mock_http_response().json.return_value = Response(json.dumps(not_empty_response_object.value),
                                                           mimetype='application/json',
                                                           status=200)

@@ -169,7 +169,7 @@ def test_list_can_filter_by_rate(temp_json_file):
     repo = ajr.ArtistJsonRepository(temp_json_file)
 
     artists = repo.list(
-        filters={'max_rate': '27.1'}
+        filters={'rate_max': '27.1'}
     )
 
     assert len(artists) == 1
@@ -256,7 +256,7 @@ def test_list_rank_by_distance(temp_json_file):
 def test_list_rank_by_rate(temp_json_file):
     repo = ajr.ArtistJsonRepository(temp_json_file)
 
-    artists = repo.list(filters={'max_rate': '31.1'}, rankings={'rate': '1'})
+    artists = repo.list(filters={'rate_max': '31.1'}, rankings={'rate': '1'})
     expected_result = [
         'f853578c-fc0f-4e65-81b8-566c5dffa35a',
         '913694c6-435a-4366-ba0d-da5334a611b2',

@@ -76,11 +76,11 @@ class ArtistJsonRepository(object):
         return artist_list
 
     def _filter_by_rate(self, _filters, artist_list):
-        if 'max_rate' in _filters:
+        if 'rate_max' in _filters:
             _artist_list = []
             for artist in artist_list:
-                if artist.rate <= float(_filters['max_rate']):
-                    artist.rate_rank = abs(float(_filters['max_rate']) - artist.rate)
+                if artist.rate <= float(_filters['rate_max']):
+                    artist.rate_rank = abs(float(_filters['rate_max']) - artist.rate)
                     _artist_list.append(artist)
 
             artist_list = _artist_list

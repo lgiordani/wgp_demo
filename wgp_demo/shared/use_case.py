@@ -1,4 +1,4 @@
-from wgp_demo.pypline import response_object as res
+from wgp_demo.shared import response_object as res
 
 
 class UseCase(object):

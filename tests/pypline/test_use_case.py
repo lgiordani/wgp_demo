@@ -1,9 +1,9 @@
 import mock
 import six
 
-from wgp_demo.pypline import request_object as plro, response_object as res
+from wgp_demo.shared import request_object as plro, response_object as res
 
-from wgp_demo.pypline import use_case as uc
+from wgp_demo.shared import use_case as uc
 
 
 def test_use_case_cannot_process_valid_requests():
